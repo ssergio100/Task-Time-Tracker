@@ -589,11 +589,14 @@ function SubmitTask( event )
             //
             //  Add the task to local DOM storage and to the DOM.
             TaskID = NextTaskID();
-            AddTask( TaskID,
-                      { 'Name'          : TaskName,
-                        'Timestamp'     : 0,
-                        'TotElapsedTime': 0,
-                        'ElapsedSince'  : 0 } );
+           
+            obj_task =  { 'Name'          : TaskName,
+                          'Timestamp'     : 0,
+                          'TotElapsedTime': 0,
+                          'ElapsedSince'  : 0 
+                        }
+            addTaskDb(obj_task);
+            AddTask( TaskID, obj_task );
 
             if ( StartTimer == 1 )
             {
@@ -617,6 +620,18 @@ function SubmitTask( event )
     return ( TaskID );
 
 } // SubmitTask
+
+function addTaskDb(obj_task) {
+    $.post(
+        'add',
+        {
+            data: {'task':obj_task},
+        },
+        'json'
+    ).done(function(r){
+
+    })
+    }
 
 
 //------------------------------------------------------------------------------
