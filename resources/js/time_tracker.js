@@ -54,7 +54,7 @@ function NextTaskID( )
 //------------------------------------------------------------------------------
 function RetrieveTaskArr( )
 {
-    var TaskArr_JSON = '',
+     var TaskArr_JSON = '',
         TaskArr = {};
 
     if ( localStorage.getItem('TaskArr') )
@@ -63,10 +63,11 @@ function RetrieveTaskArr( )
         TaskArr      = JSON.parse(TaskArr_JSON);
     }
 
+    //TaskArr = getDbTasks()
+
     return ( TaskArr );
 
 } // RetrieveTaskArr
-
 
 //------------------------------------------------------------------------------
 //
@@ -306,6 +307,11 @@ function RemoveTask( event )
         TaskID    = DivID.substring(0, TaskDelim);
 
     //  Remove the Task from DOM storage.
+
+    if ( !removetaskDatabase(TaskID) ){
+      // return false
+    } 
+
     delete TaskArr[TaskID];
     SaveTaskArr( TaskArr );
 
@@ -323,7 +329,22 @@ function RemoveTask( event )
 
 } // RemoveTask
 
-
+function removetaskDatabase(id) {
+    $.ajax({
+		url: 'remove',
+        type: 'GET',
+        data:{'id':id},
+		dataType: 'json',
+		success: function (data) {
+				if (data.success) {
+                    return (true)
+                }
+                alert(data.message)
+                return (false)
+		
+		}
+	});
+}
 //------------------------------------------------------------------------------
 //
 //  Via CSS, highlight the task chiclet currently under the curser.
@@ -595,8 +616,12 @@ function SubmitTask( event )
                           'TotElapsedTime': 0,
                           'ElapsedSince'  : 0 
                         }
-            addTaskDb(obj_task);
+          
+            addTaskDatabase(obj_task)
+
             AddTask( TaskID, obj_task );
+            
+
 
             if ( StartTimer == 1 )
             {
@@ -621,16 +646,42 @@ function SubmitTask( event )
 
 } // SubmitTask
 
-function addTaskDb(obj_task) {
-    $.post(
-        'add',
-        {
-            data: {'task':obj_task},
-        },
-        'json'
-    ).done(function(r){
+function getTasksDatabase() {
+    $.ajax({
+		url: 'getAll',
+		type: 'GET',
+		dataType: 'json',
+		success: function (data) {
+            $.each(data, function (index, value) {
+                if(!TaskAlreadyExistsinArr(data, value.Name))  {
+                    AddTask( value.id_task, value);
+                }
+                
+            });
+		}
+	});
 
-    })
+}
+
+function addTaskDatabase(obj_task) {
+
+    $.ajax({
+		url: 'add',
+        type: 'POST',
+        data: {'task':obj_task},
+		dataType: 'json',
+		success: function (data) {
+
+            if(data.success) { console.log(data.insertId)
+                return data.insertId;
+            } else {
+                return false;
+            }
+		
+		}
+    });
+    
+
     }
 
 
@@ -684,7 +735,7 @@ $(document).ready(function() {
     $( '#top_drop' ).on( 'dragover dragenter', activateDropTarget )
                     .on( 'dragleave', deactivateDropTarget )
                     .on( 'drop', dropOnTarget ); 
-
+    getTasksDatabase()
 }); // $(document).ready()
 
 //

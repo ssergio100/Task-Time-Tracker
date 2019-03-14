@@ -1,29 +1,49 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+// defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Task extends CI_Controller {
+	
+	public $response = array();
+	
+	public function __construct(){
+        parent::__construct();
+		$this->load->model('task_model', 'task');
+		$this->response['success'] = false;
+	}
 
-	/**
-	 * Index Page for this controller.
-	 *
-	 * Maps to the following URL
-	 * 		http://example.com/index.php/welcome
-	 *	- or -
-	 * 		http://example.com/index.php/welcome/index
-	 *	- or -
-	 * Since this controller is set as the default controller in
-	 * config/routes.php, it's displayed at http://example.com/
-	 *
-	 * So any other public methods not prefixed with an underscore will
-	 * map to /index.php/welcome/<method_name>
-	 * @see https://codeigniter.com/user_guide/general/urls.html
-	 */
 	public function index()
 	{
 		$this->load->view('time_tracker');
 	}
 
 	public function add() {
-		var_dump($_POST);
+
+		$post = $_POST['task'];
+		
+		$insertId = $this->task->add($post);
+		$this->response['success'] = true;
+		$this->response['insertId'] = $insertId;
+		echo json_encode($this->response);
 	}
+
+	public function getTasks() {
+		$result = $this->task->getTasks();
+
+		echo json_encode($result);
+	}
+
+	public function remove() {
+		if ($id = $this->input->get('id') !="") {
+			$result = $this->task->remove($id);
+			if($result) {
+				$this->response['success'] = true;
+			} else {
+				$this->response['message'] = 'Ocorreu um erro ao tentar remover a tarefa.';
+			}
+		} else {
+			$this->response['message'] = 'Faltando dados!';
+		}
+		echo json_encode($this->response);
+	}
+
 }
